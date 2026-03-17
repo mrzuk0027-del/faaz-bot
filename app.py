@@ -51,7 +51,7 @@ def chat():
 
     try:
         response = client.chat.completions.create(
-            model="compound",
+            model="groq/compound",
             messages=messages
         )
 
