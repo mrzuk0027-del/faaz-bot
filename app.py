@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import requests
 import json
@@ -7,31 +7,35 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# 🔐 Get API key from environment (SAFE)
+# 🔐 API KEY (from Render environment)
 GROQ_API_KEY = os.getenv("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")
 
+# 💾 Memory file
 HISTORY_FILE = "chat_history.json"
 
-# Load chat history
+# Load history
 def load_history():
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE, "r") as f:
             return json.load(f)
     return []
 
-# Save chat history
+# Save history
 def save_history(history):
     with open(HISTORY_FILE, "w") as f:
         json.dump(history, f)
 
+# 🌐 Serve frontend
 @app.route("/")
 def home():
-    return "FAAZ-BOT is running 🚀"
+    return send_file("index.html")
 
+# 📜 Get history
 @app.route("/history", methods=["GET"])
 def get_history():
     return jsonify(load_history())
 
+# 💬 Chat endpoint
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -46,10 +50,10 @@ def chat():
             {
                 "role": "system",
                 "content": (
-                    "You are FAAZ-BOT, a helpful AI created by Mohammed Faaz. "
-                    "Do NOT mention any model names (like Groq, LLaMA, Compound). "
-                    "Only say your name and creator if the user asks. "
-                    "Otherwise respond naturally and clearly."
+                    "You are FAAZ-BOT, a smart and friendly AI assistant created by Mohammed Faaz. "
+                    "Do NOT mention model names like Groq, LLaMA, Compound, etc. "
+                    "ONLY say you are FAAZ-BOT created by Mohammed Faaz if the user asks who you are. "
+                    "Otherwise respond naturally, clearly, and helpfully."
                 )
             }
         ]
@@ -75,7 +79,7 @@ def chat():
         # 🛑 Handle API errors safely
         if "choices" not in data:
             print("API ERROR:", data)
-            return jsonify({"reply": "⚠️ AI is temporarily unavailable. Try again."})
+            return jsonify({"reply": "⚠️ AI is temporarily unavailable."})
 
         bot_reply = data["choices"][0]["message"]["content"]
 
@@ -90,7 +94,7 @@ def chat():
         print("SERVER ERROR:", str(e))
         return jsonify({"reply": "⚠️ Server error occurred."})
 
-# ✅ IMPORTANT for Render
+# 🚀 Run app (Render compatible)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
