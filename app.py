@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = os.getenv("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")
 
 HISTORY_FILE = "chat_history.json"
 
