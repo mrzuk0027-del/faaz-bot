@@ -45,9 +45,9 @@ def chat():
     user_message = request.json["message"]
 
     messages.append({
-        "role": "user",
-        "content": user_message + "\n(Remember: you are FAAZ-BOT created by Mohammed Faaz.)"
-    })
+    "role": "user",
+    "content": user_message
+})
 
     try:
         response = client.chat.completions.create(
