@@ -1,76 +1,80 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from groq import Groq
+import requests
 import json
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-# 🔐 Use environment variable (Render safe)
-client = Groq(api_key=os.getenv("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"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-CHAT_FILE = "chat_history.json"
+HISTORY_FILE = "chat_history.json"
 
-# 🧠 Load chat history
-if os.path.exists(CHAT_FILE):
-    with open(CHAT_FILE, "r") as f:
-        messages = json.load(f)
-else:
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+def save_history(history):
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f)
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    user_message = request.json.get("message")
+
+    history = load_history()
+
     messages = [
         {
             "role": "system",
             "content": (
-                "You are FAAZ-BOT, an AI assistant created by Mohammed Faaz. "
-                "Always identify yourself as FAAZ-BOT. "
-                "If asked who you are, say: 'I am FAAZ-BOT, created by Mohammed Faaz.' "
-                "Never mention model names like compound or llama."
+                "You are FAAZ-BOT, a smart and friendly AI assistant created by Mohammed Faaz. "
+                "Never mention any model names like Groq, LLaMA, Compound, etc. "
+                "Only say you are FAAZ-BOT created by Mohammed Faaz if the user asks who you are or who created you. "
+                "Otherwise respond normally in a clean, natural way."
             )
         }
     ]
 
-# 💾 Save chats
-def save_messages():
-    with open(CHAT_FILE, "w") as f:
-        json.dump(messages, f)
-
-# 🌐 Homepage (fix 404)
-@app.route("/")
-def home():
-    return send_file("index.html")
-
-# 💬 Chat API
-@app.route("/chat", methods=["POST"])
-def chat():
-    user_message = request.json["message"]
-
-    messages.append({
-    "role": "user",
-    "content": user_message
-})
+    messages += history
+    messages.append({"role": "user", "content": user_message})
 
     try:
-        response = client.chat.completions.create(
-            model="groq/compound",
-            messages=messages
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "groq/compound",  # ✅ YOUR WORKING MODEL
+                "messages": messages
+            }
         )
 
-        reply = response.choices[0].message.content
+        data = response.json()
 
-        messages.append({"role": "assistant", "content": reply})
+        bot_reply = data["choices"][0]["message"]["content"]
 
-        save_messages()
+        history.append({"role": "user", "content": user_message})
+        history.append({"role": "assistant", "content": bot_reply})
+        save_history(history)
+
+        return jsonify({"reply": bot_reply})
 
     except Exception as e:
-        reply = f"Error: {str(e)}"
+        return jsonify({"reply": f"Error: {str(e)}"})
 
-    return jsonify({"reply": reply})
-
-# 🔄 Load chat history
 @app.route("/history", methods=["GET"])
-def history():
-    return jsonify(messages)
+def get_history():
+    return jsonify(load_history())
 
-# 🚀 Run server (Render compatible)
+@app.route("/")
+def home():
+    return "FAAZ-BOT is running 🚀"
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

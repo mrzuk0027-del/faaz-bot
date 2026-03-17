@@ -15,7 +15,6 @@
             height: 100vh;
         }
 
-        /* Header */
         header {
             background: #202123;
             padding: 15px;
@@ -26,7 +25,6 @@
             top: 0;
         }
 
-        /* Chat area */
         #chatbox {
             flex: 1;
             overflow-y: auto;
@@ -54,6 +52,7 @@
             max-width: 75%;
             font-size: 14px;
             line-height: 1.4;
+            word-wrap: break-word;
         }
 
         .user .bubble {
@@ -64,7 +63,6 @@
             background: #444654;
         }
 
-        /* Input area */
         #inputArea {
             display: flex;
             padding: 10px;
@@ -122,7 +120,7 @@ function addMessage(text, type) {
 
     let bubble = document.createElement("div");
     bubble.className = "bubble";
-    bubble.innerText = text;
+    bubble.textContent = text;
 
     div.appendChild(bubble);
     chatbox.appendChild(div);
@@ -166,7 +164,6 @@ async function send() {
 
         let data = await res.json();
 
-        // typing effect
         let chatbox = document.getElementById("chatbox");
 
         let div = document.createElement("div");
@@ -178,14 +175,14 @@ async function send() {
         div.appendChild(bubble);
         chatbox.appendChild(div);
 
-        let text = data.reply;
+        let words = data.reply.split(" ");
         let i = 0;
 
         function typeEffect() {
-            if (i < text.length) {
-                bubble.innerText += text.charAt(i);
+            if (i < words.length) {
+                bubble.textContent += words[i] + " ";
                 i++;
-                setTimeout(typeEffect, 8);
+                setTimeout(typeEffect, 30);
             }
         }
 
