@@ -68,7 +68,7 @@ def chat():
                 "Content-Type": "application/json"
             },
             json={
-                "model": "groq/compound",
+                "model": "llama-3.3-70b-versatile",
                 "messages": messages
             },
             timeout=30
