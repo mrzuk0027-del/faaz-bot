@@ -6,23 +6,29 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# 🔥 DEBUG: check API key
-print("API KEY LOADED:", os.getenv("GROQ_API_KEY"))
-
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def get_ai_response(user_input):
     try:
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # 🔥 use this for now
-            messages=[{"role": "user", "content": user_input}],
-            max_tokens=200
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are FAAZ-BOT 🤖 created by Mohammed Faaz. You are smart, friendly, and helpful. Never say you are Llama or Meta AI."
+                },
+                {
+                    "role": "user",
+                    "content": user_input
+                }
+            ],
+            max_tokens=500
         )
         return response.choices[0].message.content
 
     except Exception as e:
-        print("FULL ERROR:", str(e))
-        return f"ERROR: {str(e)}"   # 👈 SHOWS REAL ERROR
+        print("Error:", str(e))
+        return "⚠️ AI is temporarily unavailable. Try again."
 
 
 @app.route("/")
@@ -34,6 +40,9 @@ def home():
 def chat():
     data = request.get_json()
     user_input = data.get("message", "")
+
+    if not user_input:
+        return jsonify({"reply": "Type something..."})
 
     reply = get_ai_response(user_input)
     return jsonify({"reply": reply})
