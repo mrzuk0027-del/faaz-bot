@@ -6,40 +6,25 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-client = Groq(api_key=os.getenv("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"))
+# 🔥 DEBUG: check API key
+print("API KEY LOADED:", os.getenv("GROQ_API_KEY"))
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def get_ai_response(user_input):
     try:
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz. Be smart and friendly."},
-                {"role": "user", "content": user_input}
-            ],
-            max_tokens=500
+            model="llama-3.1-8b-instant",  # 🔥 use this for now
+            messages=[{"role": "user", "content": user_input}],
+            max_tokens=200
         )
         return response.choices[0].message.content
 
     except Exception as e:
-        print("Primary error:", str(e))
-
-        try:
-            response = client.chat.completions.create(
-                model="qwen/qwen3-32b",
-                messages=[
-                    {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz."},
-                    {"role": "user", "content": user_input}
-                ],
-                max_tokens=500
-            )
-            return response.choices[0].message.content
-
-        except Exception as e:
-            print("Fallback error:", str(e))
-            return "⚠️ AI is temporarily unavailable."
+        print("FULL ERROR:", str(e))
+        return f"ERROR: {str(e)}"   # 👈 SHOWS REAL ERROR
 
 
-# 🔥 THIS FIXES YOUR ISSUE
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -49,9 +34,6 @@ def home():
 def chat():
     data = request.get_json()
     user_input = data.get("message", "")
-
-    if not user_input:
-        return jsonify({"reply": "Please type something."})
 
     reply = get_ai_response(user_input)
     return jsonify({"reply": reply})
