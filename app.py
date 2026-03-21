@@ -11,7 +11,7 @@ client = Groq(api_key=os.getenv("gsk_d61KbT2nQAhKU9iSHx3DWGdyb3FYS4LKU3BfInp7Jqn
 def get_ai_response(user_input):
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz. Be smart and friendly."},
                 {"role": "user", "content": user_input}
@@ -25,7 +25,7 @@ def get_ai_response(user_input):
 
         try:
             response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model="qwen/qwen3-32b",
                 messages=[
                     {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz."},
                     {"role": "user", "content": user_input}
