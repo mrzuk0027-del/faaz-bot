@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from groq import Groq
 import os
@@ -6,7 +6,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Initialize Groq
 client = Groq(api_key=os.getenv("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"))
 
 def get_ai_response(user_input):
@@ -14,7 +13,7 @@ def get_ai_response(user_input):
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz. Be smart, friendly, and helpful."},
+                {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz. Be smart and friendly."},
                 {"role": "user", "content": user_input}
             ],
             max_tokens=500
@@ -28,7 +27,7 @@ def get_ai_response(user_input):
             response = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[
-                    {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz. Be helpful and friendly."},
+                    {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz."},
                     {"role": "user", "content": user_input}
                 ],
                 max_tokens=500
@@ -37,7 +36,13 @@ def get_ai_response(user_input):
 
         except Exception as e:
             print("Fallback error:", str(e))
-            return "⚠️ AI is temporarily unavailable. Please try again later."
+            return "⚠️ AI is temporarily unavailable."
+
+
+# 🔥 THIS FIXES YOUR ISSUE
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 
 @app.route("/chat", methods=["POST"])
@@ -50,11 +55,6 @@ def chat():
 
     reply = get_ai_response(user_input)
     return jsonify({"reply": reply})
-
-
-@app.route("/")
-def home():
-    return "FAAZ-BOT is running!"
 
 
 if __name__ == "__main__":
