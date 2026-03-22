@@ -18,13 +18,23 @@ body {
 
 /* Header */
 .header {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     padding: 15px;
-    font-weight: bold;
     background: #202123;
+    font-weight: bold;
+    font-size: 18px;
 }
 
-/* Chat Area */
+/* Logo */
+.logo {
+    width: 30px;
+    height: 30px;
+}
+
+/* Chat area */
 #chatBox {
     flex: 1;
     overflow-y: auto;
@@ -38,6 +48,7 @@ body {
     margin: 8px 0;
     border-radius: 10px;
     line-height: 1.4;
+    word-wrap: break-word;
 }
 
 .user {
@@ -49,7 +60,7 @@ body {
     background: #444654;
 }
 
-/* Input Area */
+/* Input */
 .input-area {
     display: flex;
     padding: 10px;
@@ -74,7 +85,7 @@ button {
     cursor: pointer;
 }
 
-/* Mobile Optimization */
+/* Mobile */
 @media (max-width: 600px) {
     .message {
         max-width: 95%;
@@ -90,10 +101,16 @@ button {
 
 <body>
 
-<div class="header">FAAZ-BOT 🤖</div>
+<!-- Header with Logo -->
+<div class="header">
+    <img src="/static/logo.png" class="logo">
+    <span>FAAZ-BOT</span>
+</div>
 
+<!-- Chat -->
 <div id="chatBox"></div>
 
+<!-- Input -->
 <div class="input-area">
     <input type="text" id="messageInput" placeholder="Send a message..." />
     <button onclick="sendMessage()">Send</button>
@@ -126,7 +143,7 @@ async function sendMessage() {
 
     } catch {
         typing.remove();
-        addMessage("⚠️ Error connecting to server", "bot");
+        addMessage("⚠️ Server error. Try again.", "bot");
     }
 }
 
