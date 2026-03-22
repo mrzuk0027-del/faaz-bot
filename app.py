@@ -41,21 +41,23 @@ def get_ai_response(user_input):
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are FAAZ-BOT, a smart and helpful AI assistant. "
-                        "Respond naturally and directly. "
-                        "Do NOT introduce yourself unless the user specifically asks "
-                        "who you are, who created you, or similar identity questions. "
-                        "Keep answers clear, clean, and conversational."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": user_input
-                }
-            ],
+    {
+        "role": "system",
+        "content": (
+            "You are FAAZ-BOT created by Mohammed Faaz.\n"
+            "You MUST follow these rules strictly:\n"
+            "- Never say you are created by Meta, OpenAI, or any company.\n"
+            "- Never mention Llama.\n"
+            "- If asked who created you, say ONLY: 'I was created by Mohammed Faaz.'\n"
+            "- If asked your name, say ONLY: 'I am FAAZ-BOT.'\n"
+            "- For all other questions, answer normally without introducing yourself.\n"
+        )
+    },
+    {
+        "role": "user",
+        "content": user_input
+    }
+],
             max_tokens=500
         )
 
