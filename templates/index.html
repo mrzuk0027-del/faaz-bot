@@ -22,6 +22,22 @@ body {
     border-right: 1px solid #222;
     display: flex;
     flex-direction: column;
+    transition: 0.3s;
+}
+
+/* Mobile sidebar hidden */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        height: 100%;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
 }
 
 .sidebar h2 {
@@ -68,10 +84,18 @@ body {
 .header {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 10px;
     padding: 12px;
     border-bottom: 1px solid #222;
+}
+
+/* Menu button */
+.menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
 }
 
 .logo {
@@ -152,11 +176,6 @@ button {
     from {opacity:0; transform:translateY(5px);}
     to {opacity:1;}
 }
-
-/* Mobile */
-@media (max-width: 768px) {
-    .sidebar { display: none; }
-}
 </style>
 </head>
 
@@ -173,6 +192,7 @@ button {
 <div class="main">
 
 <div class="header">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <img src="/static/logo.png" class="logo">
     <span>FAAZ-BOT</span>
 </div>
@@ -189,6 +209,10 @@ button {
 <script>
 let chats = {};
 let currentChat = Date.now();
+
+function toggleSidebar() {
+    document.querySelector(".sidebar").classList.toggle("active");
+}
 
 function newChat() {
     currentChat = Date.now();
@@ -218,6 +242,8 @@ function loadChat(id) {
     chats[id].forEach(msg => {
         addMessage(msg.text, msg.sender);
     });
+
+    document.querySelector(".sidebar").classList.remove("active");
 }
 
 async function sendMessage() {
