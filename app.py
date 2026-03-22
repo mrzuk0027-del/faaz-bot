@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify, render_template
 import sqlite3
-from groq import Groq
 import os
+from groq import Groq
 
 app = Flask(__name__)
 
+# ---------------- CONFIG ---------------- #
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ---------------- DATABASE ---------------- #
@@ -15,7 +16,7 @@ def init_db():
     c.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
+        username TEXT UNIQUE,
         password TEXT
     )
     ''')
@@ -34,16 +35,35 @@ def init_db():
 
 init_db()
 
-# ---------------- AI ---------------- #
+# ---------------- AI FUNCTION ---------------- #
 def get_ai_response(user_input):
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": "You are FAAZ-BOT created by Mohammed Faaz."},
-            {"role": "user", "content": user_input}
-        ]
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are FAAZ-BOT, a smart and helpful AI assistant. "
+                        "Respond naturally and directly. "
+                        "Do NOT introduce yourself unless the user specifically asks "
+                        "who you are, who created you, or similar identity questions. "
+                        "Keep answers clear, clean, and conversational."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": user_input
+                }
+            ],
+            max_tokens=500
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        print("AI ERROR:", e)
+        return "⚠️ AI is temporarily unavailable. Please try again."
 
 # ---------------- ROUTES ---------------- #
 @app.route("/")
@@ -54,25 +74,31 @@ def home():
 def chatpage():
     return render_template("index.html")
 
-# -------- REGISTER -------- #
+# ---------------- REGISTER ---------------- #
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
 
-    c.execute("INSERT INTO users (username, password) VALUES (?, ?)",
-              (data["username"], data["password"]))
+    try:
+        conn = sqlite3.connect("chat.db")
+        c = conn.cursor()
 
-    conn.commit()
-    conn.close()
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)",
+                  (data["username"], data["password"]))
 
-    return jsonify({"status": "registered"})
+        conn.commit()
+        conn.close()
 
-# -------- LOGIN -------- #
+        return jsonify({"status": "registered"})
+
+    except:
+        return jsonify({"status": "error", "message": "User already exists"})
+
+# ---------------- LOGIN ---------------- #
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
+
     conn = sqlite3.connect("chat.db")
     c = conn.cursor()
 
@@ -87,27 +113,34 @@ def login():
     else:
         return jsonify({"status": "fail"})
 
-# -------- CHAT -------- #
+# ---------------- CHAT ---------------- #
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
-    user_input = data["message"]
+    user_input = data.get("message", "")
     user_id = data.get("user_id", 1)
+
+    if not user_input:
+        return jsonify({"reply": "Please type something."})
 
     reply = get_ai_response(user_input)
 
-    # Save to DB
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute("INSERT INTO messages (user_id, message, response) VALUES (?, ?, ?)",
-              (user_id, user_input, reply))
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect("chat.db")
+        c = conn.cursor()
+
+        c.execute(
+            "INSERT INTO messages (user_id, message, response) VALUES (?, ?, ?)",
+            (user_id, user_input, reply)
+        )
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print("DB ERROR:", e)
 
     return jsonify({"reply": reply})
 
-
+# ---------------- RUN ---------------- #
 if __name__ == "__main__":
-   import os
-
-app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
